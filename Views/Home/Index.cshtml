@@ -1,0 +1,122 @@
+﻿@model RoleViewModel
+
+<div class="container">
+    <div class="row">&nbsp;</div>
+
+    <div class="row">
+        <div class="col-3">Role</div>
+        <div class="col-6" id="role" style="color:blue">@Model.UserRoles?.FirstOrDefault()</div>
+    </div>
+    <div class="row">
+        <div class="col-3">Sender</div>
+        <div class="col-6"><input class="col-12" type="text" value="@User.Identity?.Name" id="senderEmail" disabled /></div>
+    </div>
+    <div class="row">
+        <div class="col-3">Receiver</div>
+        <div class="col-6"><input class="col-12" type="text" id="receiverEmail" /></div>
+    </div>
+    <div class="row">
+        <div class="col-3">Message</div>
+        <div class="col-6"><input class="col-12" type="text" id="chatMessage" /></div>
+    </div>
+    <div class="row">&nbsp;</div>
+    <div class="row">
+        <div class="col-6">
+            <input type="button" id="sendMessage" value="Send Message" />
+        </div>
+        <div class="col-6">
+            <input type="button" id="sendMessageToGroup" value="Send Message to Group" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <hr />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.js"></script>
+
+
+<script>
+
+    var connectionChat = new signalR.HubConnectionBuilder().withUrl("/hubs/basicchat").build();
+
+    document.getElementById("sendMessage").disabled = false;
+    connectionChat.on("MessageReceived", function (user, message) {
+        var li = document.createElement("li");
+        document.getElementById("messagesList").appendChild(li);
+        li.textContent = `${user} - ${message}`;
+    });
+
+    document.getElementById("sendMessage").addEventListener("click", function (event) {
+        var sender = document.getElementById("senderEmail").value;
+        var message = document.getElementById("chatMessage").value;
+        var receiver = document.getElementById("receiverEmail").value;
+        if (receiver.length > 0) {
+
+            $.ajax({
+                url: '/SendMessageToReceiver',
+                type: 'GET',
+                data: { sender: sender, receiver: receiver, message: message },
+                success: function (response) {
+                    console.log(response);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+        }
+        else {
+            //send message to all of the users
+
+            $.ajax({
+                url: '/SendMessageToAll',
+                type: 'GET',
+                data: { user: sender, message: message },
+                success: function (response) {
+                    console.log(response);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+        }
+        event.preventDefault();
+    })
+
+
+    document.getElementById("sendMessageToGroup").addEventListener("click", function (event) {
+        var message = document.getElementById("chatMessage").value;
+
+        $.ajax({
+            url: '/SendMessageToGroup',
+            type: 'GET',
+            data: { message: message },
+            success: function (response) {
+                console.log(response);
+            },
+            error: function (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        event.preventDefault();
+    })
+
+
+    connectionChat.start().then(function () {
+        var sender = document.getElementById("senderEmail").value;
+        connectionChat.send("JoinGroup", sender);
+        document.getElementById("sendMessage").disabled = false;
+    });
+
+
+</script>
