@@ -44,6 +44,11 @@ namespace SignalRMVC.Controllers
         }
 
 
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
         [HttpGet("SendMessageToAll")]
         [Authorize]
         public async Task<IActionResult> SendMessageToAll(string user, string message)

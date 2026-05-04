@@ -1,44 +1,54 @@
 ﻿@model RoleViewModel
 
-<div class="container">
-    <div class="row">&nbsp;</div>
 
-    <div class="row">
-        <div class="col-3">Role</div>
-        <div class="col-6" id="role" style="color:blue">@Model.UserRoles?.FirstOrDefault()</div>
-    </div>
-    <div class="row">
-        <div class="col-3">Sender</div>
-        <div class="col-6"><input class="col-12" type="text" value="@User.Identity?.Name" id="senderEmail" disabled /></div>
-    </div>
-    <div class="row">
-        <div class="col-3">Receiver</div>
-        <div class="col-6"><input class="col-12" type="text" id="receiverEmail" /></div>
-    </div>
-    <div class="row">
-        <div class="col-3">Message</div>
-        <div class="col-6"><input class="col-12" type="text" id="chatMessage" /></div>
-    </div>
-    <div class="row">&nbsp;</div>
-    <div class="row">
-        <div class="col-6">
-            <input type="button" id="sendMessage" value="Send Message" />
+<div id="app" class="app">
+    <section id="main-right" class="main-right">
+
+        <!-- header -->
+        <div id="header-right" class="header-right">
+            <div class="profile header-img">
+                <span class="glyphicon glyphicon-user"> Sender :</span>
+            </div>
+            <h4 class="name friend-name">
+                <input class="type-area" type="text" value="@User.Identity?.Name" id="senderEmail" disabled />
+            </h4>
+            <div class="profile header-img">
+                <span class="glyphicon glyphicon-user"> Receiver :</span>
+            </div>
+            <!-- name -->
+            <h4 class="name friend-name"> <input class="form-control type-area" type="text" id="receiverEmail" placeholder="Type receiver email here ..." /></h4>
+
+            <!-- some btn -->
+          @*   <div class="some-btn">
+                <span class="glyphicon glyphicon-facetime-video"></span>
+                <span class="glyphicon glyphicon-earphone"></span>
+                <span class="glyphicon glyphicon-option-vertical option-btn"></span>
+            </div> *@
         </div>
-        <div class="col-6">
+
+        <!-- chat area -->
+        <div id="chat-area" class="chat-area">
+            <!-- chat content -->
+        </div>
+
+        <!-- typing area -->
+        <div id="typing-area" class="typing-area">
+            <!-- input form -->
+            <input id="type-area" class="type-area" placeholder="Type something...">
+            <!-- attachment btn -->
+            @* <div class="attach-btn">
+                <span class="glyphicon glyphicon-paperclip file-btn"></span>
+                <span class="glyphicon glyphicon-camera"></span>
+                <span class="glyphicon glyphicon-picture"></span>
+            </div> *@
+
             <input type="button" id="sendMessageToGroup" value="Send Message to Group" />
+            <!-- send btn -->
+            <button id="sendMessage" class="send-btn">
+                <i class="glyphicon glyphicon-send"></i>
+            </button>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-12">
-            <hr />
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-6">
-            <ul id="messagesList"></ul>
-        </div>
-    </div>
-
+    </section>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.js"></script>
@@ -50,15 +60,17 @@
 
     document.getElementById("sendMessage").disabled = false;
     connectionChat.on("MessageReceived", function (user, message) {
-        var li = document.createElement("li");
-        document.getElementById("messagesList").appendChild(li);
-        li.textContent = `${user} - ${message}`;
+         var CurrentDate = new Date();
+        var div = document.createElement('div');
+        div.innerHTML = ' <div id="friends-chat" class="friends-chat"><div class="profile friends-chat-photo"><img src="images/ava2.jpg" alt=""></div><div class="friends-chat-content"><p class="friends-chat-name">'+user +'</p><p class="friends-chat-balloon">'+ message +'</p><h5 class="chat-datetime">'+ CurrentDate +'</h5></div></div>';
+        document.getElementById("chat-area").appendChild(div);
     });
 
     document.getElementById("sendMessage").addEventListener("click", function (event) {
         var sender = document.getElementById("senderEmail").value;
-        var message = document.getElementById("chatMessage").value;
+        var message = document.getElementById("type-area").value;
         var receiver = document.getElementById("receiverEmail").value;
+        var CurrentDate = new Date();
         if (receiver.length > 0) {
 
             $.ajax({
@@ -66,9 +78,17 @@
                 type: 'GET',
                 data: { sender: sender, receiver: receiver, message: message },
                 success: function (response) {
+
+                   var div = document.createElement('div');
+                   div.innerHTML = '<div id="your-chat" class="your-chat"><p class="your-chat-balloon">'+ message +  ' </p><p class="chat-datetime"><span class="glyphicon glyphicon-ok"></span> ' + CurrentDate + '</p></div>';
+                   document.getElementById("chat-area").appendChild(div);
+                   document.getElementById("type-area").value= "";
                     console.log(response);
                 },
                 error: function (error) {
+
+
+
                     console.error('Error:', error);
                 }
             });
